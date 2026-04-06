@@ -4,89 +4,54 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 90 20% 6%;
+    --foreground: 80 15% 88%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 90 18% 9%;
+    --card-foreground: 80 15% 88%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 90 18% 9%;
+    --popover-foreground: 80 15% 88%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 28 75% 46%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 90 15% 14%;
+    --secondary-foreground: 80 15% 80%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 90 12% 16%;
+    --muted-foreground: 80 10% 55%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 38 90% 47%;
+    --accent-foreground: 0 0% 5%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 90 12% 20%;
+    --input: 90 12% 18%;
+    --ring: 28 75% 46%;
 
-    --radius: 0.5rem;
+    --radius: 0px;
 
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-background: 90 20% 6%;
+    --sidebar-foreground: 80 15% 88%;
+    --sidebar-primary: 28 75% 46%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 90 15% 14%;
+    --sidebar-accent-foreground: 80 15% 80%;
+    --sidebar-border: 90 12% 20%;
+    --sidebar-ring: 28 75% 46%;
+
+    /* TacticMind brand vars */
+    --combat-orange: #d4681a;
+    --combat-amber: #e8890a;
+    --khaki-dark: #141810;
+    --khaki-mid: #2d3620;
+    --khaki-light: #4a5a30;
+    --text-primary: #d8dcc8;
+    --text-muted: #7a8a6a;
+    --border-tactical: #2d3620;
   }
 }
 
@@ -96,6 +61,238 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-roboto;
+    background-color: #0d0f0a;
+    color: #d8dcc8;
   }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Oswald", sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+}
+
+/* Camouflage texture overlay */
+.camo-bg {
+  background-image:
+    radial-gradient(
+      ellipse at 20% 50%,
+      rgba(45, 54, 32, 0.4) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse at 80% 20%,
+      rgba(74, 90, 48, 0.3) 0%,
+      transparent 40%
+    ),
+    radial-gradient(
+      ellipse at 60% 80%,
+      rgba(30, 36, 24, 0.5) 0%,
+      transparent 45%
+    );
+}
+
+/* Tactical grid lines */
+.tactical-grid {
+  background-image:
+    linear-gradient(rgba(45, 54, 32, 0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(45, 54, 32, 0.15) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Corner brackets decoration */
+.corner-bracket {
+  position: relative;
+}
+.corner-bracket::before,
+.corner-bracket::after {
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-color: var(--combat-orange);
+  border-style: solid;
+}
+.corner-bracket::before {
+  top: -2px;
+  left: -2px;
+  border-width: 2px 0 0 2px;
+}
+.corner-bracket::after {
+  bottom: -2px;
+  right: -2px;
+  border-width: 0 2px 2px 0;
+}
+
+/* Scan line effect */
+.scanlines {
+  position: relative;
+  overflow: hidden;
+}
+.scanlines::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.08) 2px,
+    rgba(0, 0, 0, 0.08) 4px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Tactical divider */
+.tac-divider {
+  border: none;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--combat-orange),
+    transparent
+  );
+}
+
+/* Text glow orange */
+.text-glow {
+  text-shadow: 0 0 20px rgba(212, 104, 26, 0.5);
+}
+
+/* Combat button */
+.btn-combat {
+  background: var(--combat-orange);
+  color: white;
+  font-family: "Oswald", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 12px 32px;
+  border: none;
+  clip-path: polygon(
+    0 0,
+    calc(100% - 12px) 0,
+    100% 12px,
+    100% 100%,
+    12px 100%,
+    0 calc(100% - 12px)
+  );
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 600;
+}
+.btn-combat:hover {
+  background: var(--combat-amber);
+  transform: translateY(-1px);
+}
+
+/* AI tag */
+.ai-tag {
+  background: rgba(212, 104, 26, 0.15);
+  border: 1px solid rgba(212, 104, 26, 0.4);
+  color: var(--combat-amber);
+  font-family: "Roboto Mono", monospace;
+  font-size: 0.65rem;
+  padding: 2px 8px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+/* Rating star */
+.rating-bar {
+  background: linear-gradient(90deg, var(--combat-orange), var(--combat-amber));
+  height: 3px;
+  border-radius: 0;
+}
+
+/* Card tactical */
+.card-tac {
+  background: #141810;
+  border: 1px solid #2d3620;
+  position: relative;
+  transition: all 0.3s;
+}
+.card-tac:hover {
+  border-color: var(--combat-orange);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(212, 104, 26, 0.15);
+}
+
+/* Number counter large */
+.counter-num {
+  font-family: "Oswald", sans-serif;
+  font-size: 5rem;
+  font-weight: 700;
+  color: rgba(212, 104, 26, 0.12);
+  line-height: 1;
+  position: absolute;
+  top: -10px;
+  right: 16px;
+  user-select: none;
+}
+
+/* Section badge */
+.sec-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(212, 104, 26, 0.1);
+  border-left: 3px solid var(--combat-orange);
+  padding: 4px 12px;
+  font-family: "Roboto", sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--combat-orange);
+  margin-bottom: 16px;
+}
+
+/* Hex badge */
+.hex-badge {
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  background: var(--combat-orange);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes fadeSlide {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.anim-fade {
+  animation: fadeSlide 0.6s ease-out forwards;
+}
+.anim-delay-1 {
+  animation-delay: 0.1s;
+  opacity: 0;
+}
+.anim-delay-2 {
+  animation-delay: 0.2s;
+  opacity: 0;
+}
+.anim-delay-3 {
+  animation-delay: 0.3s;
+  opacity: 0;
+}
+.anim-delay-4 {
+  animation-delay: 0.4s;
+  opacity: 0;
+}
+.anim-delay-5 {
+  animation-delay: 0.5s;
+  opacity: 0;
 }
