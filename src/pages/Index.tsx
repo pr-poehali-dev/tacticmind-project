@@ -1,189 +1,214 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import Icon from "@/components/ui/icon";
-import AiSelector from "@/components/AiSelector";
+import AiSelector, { type AiProduct } from "@/components/AiSelector";
 import CartModal from "@/components/CartModal";
 import AddedToast from "@/components/AddedToast";
+import ProductModal from "@/components/ProductModal";
+import AuthModal from "@/components/AuthModal";
+import AdminPanel from "@/components/AdminPanel";
 import { useCart } from "@/hooks/useCart";
+import { useAuth, type Order, type Selection } from "@/hooks/useAuth";
 
+// Изображения из проекта
 const IMG = {
   backpack: "https://cdn.poehali.dev/projects/600da521-22fd-451e-8c82-59b152c1d165/files/e36b36f6-28e7-40d1-b2b2-842f39d434ea.jpg",
   knife: "https://cdn.poehali.dev/projects/600da521-22fd-451e-8c82-59b152c1d165/files/8ea21448-585e-4cc6-8bdf-15653a06e9ca.jpg",
   boots: "https://cdn.poehali.dev/projects/600da521-22fd-451e-8c82-59b152c1d165/files/b272a69e-e2fc-459d-92b6-1eedea70a0f9.jpg",
 };
 
-const PRODUCTS = [
+const PRODUCTS: AiProduct[] = [
+  // --- СУЩЕСТВУЮЩИЕ (1–14) ---
   {
-    id: 1,
-    name: "Рюкзак ASSAULT PRO",
-    category: "Экипировка",
-    price: "8 490 ₽",
-    rating: 97,
-    image: IMG.backpack,
-    tag: "ТОП ВЫБОР ИИ",
+    id: 1, name: "Рюкзак ASSAULT PRO", category: "Экипировка", price: "8 490 ₽", rating: 97,
+    image: IMG.backpack, tag: "ТОП ВЫБОР ИИ",
     aiReason: "Оптимальное соотношение веса и объёма (45л / 1.8кг). Совместим с системой MOLLE. Водонепроницаемое покрытие 3000мм.",
     specs: ["45 литров", "Кордура 1000D", "MOLLE", "IP65"],
   },
   {
-    id: 2,
-    name: "Мультитул FORCE-7",
-    category: "Инструменты",
-    price: "4 200 ₽",
-    rating: 94,
-    image: IMG.knife,
-    tag: "ВЫБОР ЭКСПЕРТОВ",
+    id: 2, name: "Мультитул FORCE-7", category: "Инструменты", price: "4 200 ₽", rating: 94,
+    image: IMG.knife, tag: "ВЫБОР ЭКСПЕРТОВ",
     aiReason: "19 функций в одном корпусе из нержавеющей стали 420HC. Одноручное открытие. Гарантия 25 лет.",
     specs: ["19 функций", "Сталь 420HC", "156 гр", "25 лет"],
   },
   {
-    id: 3,
-    name: "Берцы GRUNT X2",
-    category: "Обувь",
-    price: "12 800 ₽",
-    rating: 91,
-    image: IMG.boots,
-    tag: "БЕСТСЕЛЛЕР",
+    id: 3, name: "Берцы GRUNT X2", category: "Обувь", price: "12 800 ₽", rating: 91,
+    image: IMG.boots, tag: "БЕСТСЕЛЛЕР",
     aiReason: "Мембрана Gore-Tex, защита 100%. Подошва Vibram до −40°C. Идеальны для длительных маршей.",
     specs: ["Gore-Tex", "Vibram sole", "−40°C", "Тактический носок"],
   },
   {
-    id: 4,
-    name: "Фонарь NIGHTHAWK",
-    category: "Свет",
-    price: "3 500 ₽",
-    rating: 89,
-    image: IMG.backpack,
-    tag: "ВЫБОР ИИ",
+    id: 4, name: "Фонарь NIGHTHAWK", category: "Свет", price: "3 500 ₽", rating: 89,
+    image: IMG.backpack, tag: "ВЫБОР ИИ",
     aiReason: "1000 люмен при весе 98г. Ударопрочный корпус, защита IP68. 5 режимов, 12 часов работы.",
     specs: ["1000 люмен", "IP68", "5 режимов", "12 ч"],
   },
   {
-    id: 5,
-    name: "Перчатки IRONGRIP",
-    category: "Защита",
-    price: "2 800 ₽",
-    rating: 86,
-    image: IMG.boots,
-    tag: "ПОПУЛЯРНЫЙ",
+    id: 5, name: "Перчатки IRONGRIP", category: "Защита", price: "2 800 ₽", rating: 86,
+    image: IMG.boots, tag: "ПОПУЛЯРНЫЙ",
     aiReason: "Кевларовая защита костяшек выдерживает удар 80 Дж. Антискользящее покрытие. Совместимы с сенсорами.",
     specs: ["Кевлар", "Полупалец", "Антипорез", "XS-XXL"],
   },
   {
-    id: 6,
-    name: "Бронежилет ГРАНИТ-4",
-    category: "Защита",
-    price: "54 990 ₽",
-    rating: 96,
-    image: IMG.backpack,
-    tag: "МАКСИМАЛЬНАЯ ЗАЩИТА",
+    id: 6, name: "Бронежилет ГРАНИТ-4", category: "Защита", price: "54 990 ₽", rating: 96,
+    image: IMG.backpack, tag: "МАКСИМАЛЬНАЯ ЗАЩИТА",
     aiReason: "Класс защиты Бр4. Керамические пластины, вес 9.2кг. Покрывает грудь, спину и боки. Сертифицирован ГОСТ.",
     specs: ["Бр4", "9.2 кг", "Керамика", "ГОСТ"],
   },
   {
-    id: 7,
-    name: "Шлем КИРАСА-Ш",
-    category: "Защита",
-    price: "23 490 ₽",
-    rating: 93,
-    image: IMG.knife,
-    tag: "ТОП ЗАЩИТА",
+    id: 7, name: "Шлем КИРАСА-Ш", category: "Защита", price: "23 490 ₽", rating: 93,
+    image: IMG.knife, tag: "ТОП ЗАЩИТА",
     aiReason: "Класс Бр3, вес всего 1.4кг. Титановая основа. Крепления NVG, слоты MOLLE. Совместим с гарнитурой.",
     specs: ["Бр3", "1.4 кг", "Титан", "NVG крепления"],
   },
   {
-    id: 8,
-    name: "Разгрузка МОЛОТ-М",
-    category: "Экипировка",
-    price: "18 990 ₽",
-    rating: 92,
-    image: IMG.backpack,
-    tag: "ВЫБОР ЭКСПЕРТОВ",
+    id: 8, name: "Разгрузка МОЛОТ-М", category: "Экипировка", price: "18 990 ₽", rating: 92,
+    image: IMG.backpack, tag: "ВЫБОР ЭКСПЕРТОВ",
     aiReason: "8 карманов, система быстрого сброса за 1 секунду. Совместима с бронепластинами. Регулируется по фигуре.",
     specs: ["8 карманов", "Быстросброс", "MOLLE", "Унисекс"],
   },
   {
-    id: 9,
-    name: "Аптечка СТОП-КРОВЬ",
-    category: "Экипировка",
-    price: "3 500 ₽",
-    rating: 98,
-    image: IMG.boots,
-    tag: "ТОП ВЫБОР ИИ",
+    id: 9, name: "Аптечка СТОП-КРОВЬ", category: "Медицина", price: "3 500 ₽", rating: 98,
+    image: IMG.boots, tag: "ТОП ВЫБОР ИИ",
     aiReason: "Турникет CAT Gen7 + израильский бандаж + гемостатик. Всё что нужно при ранении в первые 3 минуты.",
     specs: ["Турникет", "Бандажи", "Гемостатик", "Инструкция"],
   },
   {
-    id: 10,
-    name: "Рация СВЯЗИСТ-ПРО",
-    category: "Инструменты",
-    price: "8 900 ₽",
-    rating: 88,
-    image: IMG.knife,
-    tag: "ПОПУЛЯРНЫЙ",
+    id: 10, name: "Рация СВЯЗИСТ-ПРО", category: "Средства связи", price: "8 900 ₽", rating: 88,
+    image: IMG.backpack, tag: "ПОПУЛЯРНЫЙ",
     aiReason: "Дальность связи до 10км на открытой местности. Влагозащита IP67. Шифрование сигнала. Аккумулятор 72 часа.",
     specs: ["10 км", "IP67", "Шифрование", "72 ч"],
   },
   {
-    id: 11,
-    name: "Тактические очки",
-    category: "Защита",
-    price: "4 200 ₽",
-    rating: 87,
-    image: IMG.backpack,
-    tag: "ВЫБОР ИИ",
+    id: 11, name: "Тактические очки HAWK", category: "Защита", price: "4 200 ₽", rating: 87,
+    image: IMG.boots, tag: "ВЫБОР ИИ",
     aiReason: "Поляризованные линзы блокируют 99.9% УФ. Ударопрочный поликарбонат. Защита от осколков и ветра.",
     specs: ["Поляризация", "Ударопрочные", "UV400", "Антицарапин"],
   },
   {
-    id: 12,
-    name: "Накидка ЛЕСОВИК",
-    category: "Экипировка",
-    price: "5 900 ₽",
-    rating: 85,
-    image: IMG.boots,
-    tag: "МАСКИРОВКА",
+    id: 12, name: "Накидка ЛЕСОВИК", category: "Экипировка", price: "5 900 ₽", rating: 85,
+    image: IMG.backpack, tag: "МАСКИРОВКА",
     aiReason: "Маскхалат для любого времени года. Ткань имитирует лесную подстилку. Дышащий материал, вес 400г.",
     specs: ["Лето/зима", "400 г", "Дышащий", "Унисекс"],
   },
   {
-    id: 13,
-    name: "Нож ВИТЯЗЬ",
-    category: "Инструменты",
-    price: "3 200 ₽",
-    rating: 90,
-    image: IMG.knife,
-    tag: "ВЫБОР ЭКСПЕРТОВ",
+    id: 13, name: "Нож ВИТЯЗЬ", category: "Инструменты", price: "3 200 ₽", rating: 90,
+    image: IMG.knife, tag: "ВЫБОР ЭКСПЕРТОВ",
     aiReason: "Сталь 440C, фиксированный клинок 15см. Рукоять G10. Ножны MOLLE-совместимые. Многофункциональный.",
     specs: ["Сталь 440C", "15 см", "Фиксация", "G10"],
   },
   {
-    id: 14,
-    name: "Навигатор GPS",
-    category: "Инструменты",
-    price: "15 900 ₽",
-    rating: 84,
-    image: IMG.backpack,
-    tag: "НАВИГАЦИЯ",
+    id: 14, name: "Навигатор СТРАЖ-GPS", category: "Инструменты", price: "15 900 ₽", rating: 84,
+    image: IMG.backpack, tag: "НАВИГАЦИЯ",
     aiReason: "Многоконстелляционный GPS+ГЛОНАСС. Топографические карты РФ. Батарея 48ч. Работает без сотовой сети.",
     specs: ["GPS+ГЛОНАСС", "48 ч", "Карты РФ", "IP67"],
   },
+  // --- НОВЫЕ (15–30) ---
+  // ОДЕЖДА
+  {
+    id: 15, name: "Куртка АРКТИК-М", category: "Одежда", price: "18 500 ₽", rating: 93,
+    image: IMG.boots, tag: "ЗИМНЯЯ ЗАЩИТА",
+    aiReason: "Мембрана Gore-Tex 3L, утеплитель Primaloft 200г. Работает от −30°C. Съёмный капюшон, система MOLLE на рукавах.",
+    specs: ["Gore-Tex 3L", "−30°C", "Primaloft", "MOLLE рукав"],
+  },
+  {
+    id: 16, name: "Штаны СПЕЦНАЗ-ТК", category: "Одежда", price: "9 800 ₽", rating: 88,
+    image: IMG.knife, tag: "УСИЛЕННЫЕ",
+    aiReason: "Двойное усиление колен и ягодиц накладками Cordura. 8 карманов. Артикулированный крой не стесняет движения.",
+    specs: ["Cordura накладки", "8 карманов", "Стрейч", "XS-4XL"],
+  },
+  {
+    id: 17, name: "Флис ТЕПЛОВОЙ-ПРО", category: "Одежда", price: "5 400 ₽", rating: 86,
+    image: IMG.backpack, tag: "ВЫБОР ИИ",
+    aiReason: "Полар-флис 300г/м², быстро сохнет. Молния по всей длине. Отлично работает как средний слой в системе слоёв.",
+    specs: ["300 г/м²", "Быстросохнущий", "Полная молния", "XS-XXXL"],
+  },
+  {
+    id: 18, name: "Пончо ПРИЗРАК", category: "Одежда", price: "3 200 ₽", rating: 82,
+    image: IMG.boots, tag: "МАСКИРОВКА",
+    aiReason: "Двусторонний дождевик: цифровой камуфляж / оливковый. Укрывает с рюкзаком. Вес 320г, пакуется в кулак.",
+    specs: ["Двусторонний", "320 г", "Камуфляж", "Универсальный"],
+  },
+  // ПИТАНИЕ И ГИДРАТАЦИЯ
+  {
+    id: 19, name: "Гидропак ПОТОК-3Л", category: "Питание и гидратация", price: "2 900 ₽", rating: 87,
+    image: IMG.backpack, tag: "ВЫБОР ИИ",
+    aiReason: "Резервуар 3 литра с широкой горловиной для льда. Трубка с клапаном прикуса. Вставка в любой рюкзак с MOLLE.",
+    specs: ["3 литра", "Антибактер.", "Клапан", "MOLLE"],
+  },
+  {
+    id: 20, name: "Паёк СУТОЧНЫЙ-Б", category: "Питание и гидратация", price: "1 200 ₽", rating: 80,
+    image: IMG.knife, tag: "БАЗОВЫЙ",
+    aiReason: "3200 ккал на сутки. 5 приёмов пищи, не требует варки. Срок хранения 5 лет. Соответствует ГОСТ Р 54033.",
+    specs: ["3200 ккал", "5 блюд", "5 лет", "Без варки"],
+  },
+  {
+    id: 21, name: "Котелок ПОЛЕВОЙ-Т", category: "Питание и гидратация", price: "1 800 ₽", rating: 83,
+    image: IMG.boots, tag: "УНИВЕРСАЛЬНЫЙ",
+    aiReason: "Набор: котелок 1.2л + кружка 0.6л + крышка-сковорода. Анодированный алюминий, вес 320г. Совместим с горелками.",
+    specs: ["1.2 л", "320 г", "Анод.алюминий", "Горелка"],
+  },
+  // СРЕДСТВА СВЯЗИ
+  {
+    id: 22, name: "Гарнитура СКРЫТНИК-Х", category: "Средства связи", price: "12 500 ₽", rating: 91,
+    image: IMG.backpack, tag: "ВЫБОР ЭКСПЕРТОВ",
+    aiReason: "Активная шумозащита, подавляет выстрелы до 22 дБ. PTT-кнопка, совместима с рациями Kenwood/Baofeng. Шлемное крепление.",
+    specs: ["22 дБ", "PTT", "Kenwood/Baofeng", "Шлем крепление"],
+  },
+  {
+    id: 23, name: "Антенна ДАЛЬНИЙ-КВ", category: "Средства связи", price: "3 700 ₽", rating: 79,
+    image: IMG.knife, tag: "ДАЛЬНОБОЙ",
+    aiReason: "Увеличивает дальность рации на 40–60%. Разъём SMA-Female, универсальная. Компактно складывается, вес 85г.",
+    specs: ["SMA-F", "+60% дальность", "85 г", "VHF/UHF"],
+  },
+  // МЕДИЦИНА
+  {
+    id: 24, name: "Аптечка ГРУППА-10", category: "Медицина", price: "8 900 ₽", rating: 95,
+    image: IMG.boots, tag: "ТОП ВЫБОР ИИ",
+    aiReason: "На 10 человек: 3 турникета, перевязочный пакет ППМ, 10 бандажей, гемостатик, назофарингеальный воздуховод. Чехол MOLLE.",
+    specs: ["На 10 чел.", "MOLLE чехол", "3 турникета", "Воздуховод"],
+  },
+  {
+    id: 25, name: "Турникет ТАК-ПРО", category: "Медицина", price: "1 400 ₽", rating: 92,
+    image: IMG.backpack, tag: "СПАСАЕТ ЖИЗНИ",
+    aiReason: "Аналог CAT Gen7, одноручное наложение за 25 секунд. Пластиковая пряжка, не ржавеет. Военная атрибуция по ГОСТ.",
+    specs: ["1 рука", "25 сек", "ГОСТ", "Пластик"],
+  },
+  {
+    id: 26, name: "Повязка ХЕМОСТОП", category: "Медицина", price: "890 ₽", rating: 88,
+    image: IMG.knife, tag: "ГЕМОСТАТИК",
+    aiReason: "Импрегнирована каолином, останавливает кровотечение за 3 минуты. Стерильная упаковка, 5-летний срок хранения.",
+    specs: ["Каолин", "3 минуты", "Стерильная", "5 лет"],
+  },
+  // ИНСТРУМЕНТЫ
+  {
+    id: 27, name: "Лопатка САПЁР-М", category: "Инструменты", price: "2 600 ₽", rating: 85,
+    image: IMG.boots, tag: "ПОЛЕВОЙ",
+    aiReason: "Складная малая сапёрная лопатка, сталь 65Г. Пила на обухе, рукоять прорезинена. Чехол MOLLE включён. Вес 520г.",
+    specs: ["Сталь 65Г", "Пила", "520 г", "MOLLE чехол"],
+  },
+  {
+    id: 28, name: "Мультитул ТЯЖЁЛЫЙ-19", category: "Инструменты", price: "6 800 ₽", rating: 89,
+    image: IMG.knife, tag: "ВЫБОР ЭКСПЕРТОВ",
+    aiReason: "Плоскогубцы с проволокорезом, 19 функций. Нержавейка 420HC, рукояти G10. Включает пилу по металлу и стропорез.",
+    specs: ["Плоскогубцы", "Стропорез", "420HC", "G10 рукоять"],
+  },
+  // ЭКИПИРОВКА
+  {
+    id: 29, name: "Пояс ШТУРМОВОЙ-Р", category: "Экипировка", price: "4 500 ₽", rating: 87,
+    image: IMG.backpack, tag: "БЫСТРЫЙ ДОСТУП",
+    aiReason: "Тактический пояс Rigger с застёжкой-монтажом. 8 слотов MOLLE, ширина 45мм. Сертифицирован для страховки.",
+    specs: ["MOLLE", "45 мм", "Страховка", "Быстрая пряжка"],
+  },
+  {
+    id: 30, name: "Чехол МУЛЬТИКАМ-ПТ", category: "Экипировка", price: "7 200 ₽", rating: 84,
+    image: IMG.boots, tag: "МАСКИРОВКА",
+    aiReason: "Внешний чехол на бронежилет в расцветке Multicam. Усиление Cordura 500D. Три дополнительных кармана под магазины.",
+    specs: ["Multicam", "Cordura 500D", "3 кармана", "Размеры S-XL"],
+  },
 ];
 
-const ALL_RATINGS = [
-  ...PRODUCTS.map(p => ({ rank: 0, name: p.name, score: p.rating, cat: p.category, trend: "+0" })),
-].sort((a, b) => b.score - a.score).map((r, i) => ({
-  ...r,
-  rank: i + 1,
-  trend: i % 3 === 0 ? `+${i + 1}` : i % 3 === 1 ? `+${i}` : i === 0 ? "0" : `−${(i % 2) + 1}`,
-}));
-
-const STEPS = [
-  { num: "01", icon: "MessageSquare", title: "Опишите задачу", desc: "Расскажите ИИ о вашей миссии: условия, нагрузка, климат, бюджет." },
-  { num: "02", icon: "Cpu", title: "ИИ анализирует", desc: "Алгоритм обрабатывает 10 000+ единиц снаряжения по 47 параметрам за секунды." },
-  { num: "03", icon: "Target", title: "Получаете подборку", desc: "Каждый товар сопровождается блоком «Почему именно он» с конкретным AI-обоснованием." },
-  { num: "04", icon: "ShoppingCart", title: "Заказываете", desc: "Оформляете заказ прямо в интерфейсе. Доставка по России от 1 дня." },
-];
-
-const CATS = ["Все", "Экипировка", "Защита", "Обувь", "Инструменты", "Свет"];
+// Все категории для фильтра
+const CATS = ["Все", "Экипировка", "Защита", "Обувь", "Инструменты", "Свет", "Одежда", "Питание и гидратация", "Средства связи", "Медицина"];
 const RATING_FILTERS = [{ label: "Любой", val: 0 }, { label: "80+", val: 80 }, { label: "85+", val: 85 }, { label: "90+", val: 90 }, { label: "95+", val: 95 }];
 const SORT_OPTIONS = [
   { label: "По умолчанию", val: "default" },
@@ -192,14 +217,27 @@ const SORT_OPTIONS = [
   { label: "Рейтинг (высокий)", val: "rating_desc" },
 ];
 
+const STEPS = [
+  { num: "01", icon: "MessageSquare", title: "Опишите задачу", desc: "Расскажите ИИ о вашей миссии: условия, нагрузка, климат, бюджет." },
+  { num: "02", icon: "Cpu", title: "ИИ анализирует", desc: "Алгоритм обрабатывает 30 позиций каталога по 47 параметрам за секунды." },
+  { num: "03", icon: "Target", title: "Получаете подборку", desc: "Каждый товар сопровождается блоком «Почему именно он» с конкретным AI-обоснованием." },
+  { num: "04", icon: "ShoppingCart", title: "Заказываете", desc: "Оформляете заказ прямо в интерфейсе. Доставка по России от 1 дня." },
+];
+
 function parsePrice(price: string) {
   return parseInt(price.replace(/\D/g, ""), 10) || 0;
 }
 
+// Топ-5 из всех 30 товаров по рейтингу
+const TOP_ALL = [...PRODUCTS].sort((a, b) => b.rating - a.rating);
+
 export default function Index() {
   const [activeSection, setActiveSection] = useState("home");
-  const [activeProduct, setActiveProduct] = useState<number | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<AiProduct | null>(null);
+  const [ratingExpanded, setRatingExpanded] = useState(false);
 
   const [filterCat, setFilterCat] = useState("Все");
   const [filterMaxPrice, setFilterMaxPrice] = useState("");
@@ -208,20 +246,47 @@ export default function Index() {
 
   const [toastMsg, setToastMsg] = useState("");
   const [toastVisible, setToastVisible] = useState(false);
-  const toastTimer = useState<ReturnType<typeof setTimeout> | null>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { items, totalCount, totalPrice, addItem, removeItem, changeQty, clear } = useCart();
+  const { currentUser, register, login, logout, saveOrder, saveSelection, getUsers, saveUsers } = useAuth();
 
   const showToast = useCallback((msg: string) => {
-    if (toastTimer[0]) clearTimeout(toastTimer[0]);
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     setToastMsg(msg);
     setToastVisible(true);
-    toastTimer[0] = setTimeout(() => setToastVisible(false), 2000);
-  }, [toastTimer]);
+    toastTimerRef.current = setTimeout(() => setToastVisible(false), 2000);
+  }, []);
 
-  const handleAddToCart = (p: typeof PRODUCTS[0]) => {
+  const handleAddToCart = (p: AiProduct) => {
     addItem({ id: p.id, name: p.name, price: p.price, image: p.image, category: p.category });
     showToast(`${p.name} добавлен в корзину`);
+  };
+
+  const handleOrder = () => {
+    if (items.length === 0) return;
+    const order: Order = {
+      id: Date.now().toString(),
+      date: new Date().toLocaleDateString("ru-RU"),
+      total: totalPrice,
+      status: "Создан",
+      items: [...items],
+    };
+    saveOrder(order);
+    clear();
+    showToast("Заказ оформлен! Менеджер свяжется с вами.");
+    setCartOpen(false);
+  };
+
+  const handleSaveSelection = (task: string, selItems: AiProduct[]) => {
+    if (!currentUser) return;
+    const sel: Selection = {
+      id: Date.now().toString(),
+      date: new Date().toLocaleDateString("ru-RU"),
+      task,
+      items: selItems.map(p => ({ id: p.id, name: p.name, price: p.price, image: p.image, category: p.category, aiReason: p.aiReason })),
+    };
+    saveSelection(sel);
   };
 
   const scrollTo = (id: string) => {
@@ -235,14 +300,14 @@ export default function Index() {
     if (filterMinRating && p.rating < filterMinRating) return false;
     return true;
   });
-
   if (sortBy === "price_asc") filtered = [...filtered].sort((a, b) => parsePrice(a.price) - parsePrice(b.price));
   if (sortBy === "price_desc") filtered = [...filtered].sort((a, b) => parsePrice(b.price) - parsePrice(a.price));
   if (sortBy === "rating_desc") filtered = [...filtered].sort((a, b) => b.rating - a.rating);
 
+  const ratingList = ratingExpanded ? TOP_ALL : TOP_ALL.slice(0, 5);
+
   return (
     <div className="min-h-screen bg-[#0d0f0a] text-[#d8dcc8] font-roboto">
-
       <AddedToast message={toastMsg} visible={toastVisible} />
 
       <CartModal
@@ -254,6 +319,31 @@ export default function Index() {
         onRemove={removeItem}
         onChangeQty={changeQty}
         onClear={clear}
+        onOrder={handleOrder}
+      />
+
+      <ProductModal
+        product={selectedProduct}
+        onClose={() => setSelectedProduct(null)}
+        onAddToCart={(p) => { handleAddToCart(p as AiProduct); setSelectedProduct(null); }}
+      />
+
+      <AuthModal
+        open={authOpen}
+        onClose={() => setAuthOpen(false)}
+        onRegister={(e, p, n) => { const err = register(e, p, n); if (!err) showToast("Добро пожаловать!"); return err; }}
+        onLogin={(e, p) => { const err = login(e, p); if (!err) showToast("Вход выполнен"); return err; }}
+        onLogout={logout}
+        currentUser={currentUser}
+      />
+
+      <AdminPanel
+        open={adminOpen}
+        onClose={() => setAdminOpen(false)}
+        products={PRODUCTS}
+        getUsers={getUsers}
+        saveUsers={saveUsers}
+        onLogout={logout}
       />
 
       {/* NAVIGATION */}
@@ -281,29 +371,48 @@ export default function Index() {
                 key={item.id}
                 onClick={() => scrollTo(item.id)}
                 className={`px-4 py-2 font-oswald text-sm tracking-widest uppercase transition-all duration-200 ${
-                  activeSection === item.id
-                    ? "text-[#d4681a] border-b-2 border-[#d4681a]"
-                    : "text-[#7a8a6a] hover:text-[#d8dcc8]"
+                  activeSection === item.id ? "text-[#d4681a] border-b-2 border-[#d4681a]" : "text-[#7a8a6a] hover:text-[#d8dcc8]"
                 }`}
               >
                 {item.label}
               </button>
             ))}
+            {currentUser?.isAdmin && (
+              <button
+                onClick={() => setAdminOpen(true)}
+                className="px-4 py-2 font-oswald text-sm tracking-widest uppercase text-red-400 hover:text-red-300 transition-colors border border-red-900/40 ml-1"
+              >
+                Админ
+              </button>
+            )}
           </div>
 
-          {/* Cart button */}
-          <button
-            onClick={() => setCartOpen(true)}
-            className="relative flex items-center gap-2 border border-[#2d3620] hover:border-[#d4681a] text-[#7a8a6a] hover:text-[#d4681a] px-4 py-2 transition-all duration-200 group"
-          >
-            <Icon name="ShoppingCart" size={18} />
-            <span className="font-oswald uppercase tracking-widest text-sm hidden sm:block">Корзина</span>
-            {totalCount > 0 && (
-              <span className="absolute -top-2 -right-2 bg-[#d4681a] text-white text-[10px] font-oswald w-5 h-5 flex items-center justify-center">
-                {totalCount}
+          <div className="flex items-center gap-2">
+            {/* Auth button */}
+            <button
+              onClick={() => setAuthOpen(true)}
+              className="flex items-center gap-2 border border-[#2d3620] hover:border-[#d4681a]/60 text-[#7a8a6a] hover:text-[#d4681a] px-3 py-2 transition-all duration-200"
+            >
+              <Icon name="User" size={16} />
+              <span className="font-oswald uppercase tracking-widest text-xs hidden sm:block">
+                {currentUser ? currentUser.name.split(" ")[0] : "Войти"}
               </span>
-            )}
-          </button>
+            </button>
+
+            {/* Cart button */}
+            <button
+              onClick={() => setCartOpen(true)}
+              className="relative flex items-center gap-2 border border-[#2d3620] hover:border-[#d4681a] text-[#7a8a6a] hover:text-[#d4681a] px-4 py-2 transition-all duration-200"
+            >
+              <Icon name="ShoppingCart" size={18} />
+              <span className="font-oswald uppercase tracking-widest text-sm hidden sm:block">Корзина</span>
+              {totalCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-[#d4681a] text-white text-[10px] font-oswald w-5 h-5 flex items-center justify-center">
+                  {totalCount}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
       </nav>
 
@@ -312,18 +421,16 @@ export default function Index() {
         <div className="tactical-grid absolute inset-0 opacity-40" />
         <div className="absolute top-32 right-0 w-96 h-96 bg-[#d4681a]/5 rounded-full blur-3xl" />
         <div className="absolute bottom-20 left-10 w-64 h-64 bg-[#4a5a30]/20 rounded-full blur-2xl" />
-
         <div className="absolute top-20 left-0 right-0 border-y border-[#2d3620]/50 bg-[#141810]/60 py-2 z-10">
           <div className="max-w-7xl mx-auto px-6 flex items-center justify-between text-[10px] tracking-[0.25em] uppercase text-[#4a5a30] font-roboto">
             <span className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-[#4a5a30] animate-pulse" />
               СИСТЕМА АКТИВНА
             </span>
-            <span>ИИ-АНАЛИЗ: 10 847 ЕДИНИЦ СНАРЯЖЕНИЯ</span>
-            <span className="hidden md:block">ВЕРСИЯ 2.4.1 // БОЕВАЯ ГОТОВНОСТЬ</span>
+            <span>ИИ-АНАЛИЗ: 30 ЕДИНИЦ СНАРЯЖЕНИЯ</span>
+            <span className="hidden md:block">ВЕРСИЯ 3.0.0 // БОЕВАЯ ГОТОВНОСТЬ</span>
           </div>
         </div>
-
         <div className="relative z-10 max-w-7xl mx-auto px-6 py-24">
           <div className="max-w-4xl">
             <div className="sec-badge anim-fade anim-delay-1">
@@ -331,15 +438,13 @@ export default function Index() {
               Искусственный интеллект × Тактическое снаряжение
             </div>
             <h1 className="font-oswald text-6xl md:text-8xl font-bold text-white leading-none mb-2 anim-fade anim-delay-2">
-              ПРАВИЛЬНОЕ
-              <br />
-              <span className="text-[#d4681a] text-glow">СНАРЯЖЕНИЕ</span>
-              <br />
+              ПРАВИЛЬНОЕ<br />
+              <span className="text-[#d4681a] text-glow">СНАРЯЖЕНИЕ</span><br />
               СПАСАЕТ ЖИЗНИ
             </h1>
             <div className="tac-divider my-8 anim-fade anim-delay-3" />
             <p className="text-[#7a8a6a] text-lg max-w-2xl leading-relaxed anim-fade anim-delay-3 font-roboto font-light">
-              TacticMind анализирует вашу задачу и подбирает снаряжение с точным AI-обоснованием по каждой позиции.
+              TacticMind анализирует вашу задачу и подбирает снаряжение из 30 позиций с точным AI-обоснованием по каждой.
             </p>
             <div className="flex flex-wrap gap-4 mt-10 anim-fade anim-delay-4">
               <button className="btn-combat text-base" onClick={() => scrollTo("ai-selector")}>
@@ -354,9 +459,9 @@ export default function Index() {
             </div>
             <div className="flex flex-wrap gap-8 mt-16 anim-fade anim-delay-5">
               {[
-                { val: "10 847", label: "единиц в базе" },
-                { val: "47", label: "параметров анализа" },
-                { val: "< 3 сек", label: "время подбора" },
+                { val: "30", label: "позиций в каталоге" },
+                { val: "10", label: "категорий снаряжения" },
+                { val: "< 2 сек", label: "время AI-подбора" },
                 { val: "98%", label: "точность рекомендаций" },
               ].map((s, i) => (
                 <div key={i} className="border-l-2 border-[#d4681a] pl-4">
@@ -372,7 +477,13 @@ export default function Index() {
         </div>
       </section>
 
-      <AiSelector onAddToCart={(p) => handleAddToCart(p as typeof PRODUCTS[0])} />
+      {/* AI SELECTOR */}
+      <AiSelector
+        onAddToCart={handleAddToCart}
+        onProductClick={(p) => setSelectedProduct(p)}
+        allProducts={PRODUCTS}
+        onSaveSelection={handleSaveSelection}
+      />
 
       {/* CATALOG */}
       <section id="catalog" className="py-24 bg-[#0d0f0a]">
@@ -382,7 +493,7 @@ export default function Index() {
             <h2 className="font-oswald text-5xl font-bold text-white">
               ОТОБРАНО <span className="text-[#d4681a]">ИИ</span>
             </h2>
-            <p className="text-[#7a8a6a] mt-2 font-light">Каждая позиция прошла многоуровневый анализ по 47 параметрам</p>
+            <p className="text-[#7a8a6a] mt-2 font-light">30 позиций по 10 категориям, отобранных и протестированных специалистами</p>
           </div>
 
           {/* Filters */}
@@ -392,7 +503,7 @@ export default function Index() {
               <select
                 value={filterCat}
                 onChange={e => setFilterCat(e.target.value)}
-                className="bg-[#0d0f0a] border border-[#2d3620] text-[#d8dcc8] text-sm px-3 py-2 font-oswald uppercase tracking-wider focus:border-[#d4681a] outline-none transition-colors"
+                className="bg-[#0d0f0a] border border-[#2d3620] text-[#d8dcc8] text-sm px-3 py-2 focus:border-[#d4681a] outline-none transition-colors"
               >
                 {CATS.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
@@ -412,7 +523,7 @@ export default function Index() {
               <select
                 value={filterMinRating}
                 onChange={e => setFilterMinRating(Number(e.target.value))}
-                className="bg-[#0d0f0a] border border-[#2d3620] text-[#d8dcc8] text-sm px-3 py-2 font-oswald uppercase tracking-wider focus:border-[#d4681a] outline-none transition-colors"
+                className="bg-[#0d0f0a] border border-[#2d3620] text-[#d8dcc8] text-sm px-3 py-2 focus:border-[#d4681a] outline-none transition-colors"
               >
                 {RATING_FILTERS.map(r => <option key={r.val} value={r.val}>{r.label}</option>)}
               </select>
@@ -440,7 +551,6 @@ export default function Index() {
             </div>
           </div>
 
-          {/* Products grid */}
           {filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 border border-dashed border-[#2d3620] text-center">
               <Icon name="Search" size={32} className="text-[#2d3620] mb-3" />
@@ -452,17 +562,20 @@ export default function Index() {
               {filtered.map((p, i) => (
                 <div
                   key={p.id}
-                  className="card-tac group"
-                  style={{ animationDelay: `${i * 0.05}s` }}
+                  className="card-tac group flex flex-col"
+                  style={{ animationDelay: `${i * 0.04}s` }}
                 >
-                  <div className="relative overflow-hidden h-48">
+                  <div
+                    className="relative overflow-hidden h-48 cursor-pointer"
+                    onClick={() => setSelectedProduct(p)}
+                  >
                     <img
                       src={p.image}
                       alt={p.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#141810] via-transparent to-transparent" />
-                    <div className="absolute top-2 left-2 ai-tag text-[9px]">{p.tag}</div>
+                    {p.tag && <div className="absolute top-2 left-2 ai-tag text-[9px]">{p.tag}</div>}
                     <div className="absolute top-2 right-2 bg-[#0d0f0a]/80 border border-[#2d3620] px-2 py-0.5">
                       <span className="font-oswald text-base font-bold text-[#d4681a]">{p.rating}</span>
                       <span className="text-[9px] text-[#4a5a30]">/100</span>
@@ -471,42 +584,38 @@ export default function Index() {
                   <div className="h-1 w-full bg-[#2d3620]">
                     <div className="rating-bar h-full" style={{ width: `${p.rating}%` }} />
                   </div>
-                  <div className="p-4">
+                  <div className="p-4 flex flex-col flex-1">
                     <div className="text-[9px] text-[#4a5a30] tracking-[0.2em] uppercase mb-1">{p.category}</div>
-                    <h3 className="font-oswald text-base font-bold text-white mb-2 leading-tight">{p.name}</h3>
+                    <h3
+                      className="font-oswald text-base font-bold text-white mb-2 leading-tight cursor-pointer hover:text-[#d4681a] transition-colors"
+                      onClick={() => setSelectedProduct(p)}
+                    >
+                      {p.name}
+                    </h3>
                     <div className="flex flex-wrap gap-1 mb-3">
                       {p.specs.slice(0, 3).map(s => (
-                        <span key={s} className="text-[9px] border border-[#2d3620] text-[#7a8a6a] px-1.5 py-0.5 uppercase tracking-wider">
-                          {s}
-                        </span>
+                        <span key={s} className="text-[9px] border border-[#2d3620] text-[#7a8a6a] px-1.5 py-0.5 uppercase tracking-wider">{s}</span>
                       ))}
                     </div>
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="font-oswald text-xl font-bold text-white">{p.price}</span>
+                    <div className="mt-auto">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="font-oswald text-xl font-bold text-white">{p.price}</span>
+                        <button
+                          onClick={() => setSelectedProduct(p)}
+                          className="text-[#d4681a] hover:text-[#e8890a] transition-colors flex items-center gap-1 text-xs font-oswald uppercase tracking-wider"
+                        >
+                          Подробнее
+                          <Icon name="ChevronRight" size={12} />
+                        </button>
+                      </div>
                       <button
-                        onClick={() => setActiveProduct(activeProduct === p.id ? null : p.id)}
-                        className="text-[#d4681a] hover:text-[#e8890a] transition-colors flex items-center gap-1 text-xs font-oswald uppercase tracking-wider"
+                        onClick={() => handleAddToCart(p)}
+                        className="w-full btn-combat text-xs py-2 flex items-center justify-center gap-2"
                       >
-                        Почему он?
-                        <Icon name={activeProduct === p.id ? "ChevronUp" : "ChevronDown"} size={12} />
+                        <Icon name="ShoppingCart" size={13} />
+                        В корзину
                       </button>
                     </div>
-                    {activeProduct === p.id && (
-                      <div className="mb-3 border-t border-[#2d3620] pt-3">
-                        <div className="flex items-center gap-1.5 mb-1.5">
-                          <Icon name="Cpu" size={12} className="text-[#d4681a]" />
-                          <span className="text-[9px] text-[#d4681a] tracking-[0.2em] uppercase font-oswald">AI-обоснование</span>
-                        </div>
-                        <p className="text-[#7a8a6a] text-xs leading-relaxed font-light">{p.aiReason}</p>
-                      </div>
-                    )}
-                    <button
-                      onClick={() => handleAddToCart(p)}
-                      className="w-full btn-combat text-xs py-2 flex items-center justify-center gap-2"
-                    >
-                      <Icon name="ShoppingCart" size={13} />
-                      В корзину
-                    </button>
                   </div>
                 </div>
               ))}
@@ -524,32 +633,38 @@ export default function Index() {
               <h2 className="font-oswald text-5xl font-bold text-white mb-2">
                 ТОП <span className="text-[#d4681a]">СНАРЯЖЕНИЯ</span>
               </h2>
-              <p className="text-[#7a8a6a] font-light mb-6">ИИ обновляет рейтинг еженедельно</p>
+              <p className="text-[#7a8a6a] font-light mb-6">ИИ обновляет рейтинг еженедельно из 30 позиций</p>
               <div className="space-y-1">
-                {ALL_RATINGS.map(r => (
+                {ratingList.map((p, i) => (
                   <div
-                    key={r.rank}
-                    className="flex items-center gap-3 px-4 py-3 border border-[#2d3620] hover:border-[#d4681a]/40 hover:bg-[#1e2418] transition-all duration-200 group"
+                    key={p.id}
+                    className="flex items-center gap-3 px-4 py-3 border border-[#2d3620] hover:border-[#d4681a]/40 hover:bg-[#1e2418] transition-all duration-200 group cursor-pointer"
+                    onClick={() => setSelectedProduct(p)}
                   >
                     <span className="font-oswald text-2xl font-bold text-[#2d3620] group-hover:text-[#d4681a]/25 transition-colors w-8 shrink-0 leading-none">
-                      {String(r.rank).padStart(2, "0")}
+                      {String(i + 1).padStart(2, "0")}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <div className="font-oswald text-sm font-bold text-white truncate">{r.name}</div>
-                      <div className="text-[9px] text-[#4a5a30] uppercase tracking-widest">{r.cat}</div>
+                      <div className="font-oswald text-sm font-bold text-white truncate group-hover:text-[#d4681a] transition-colors">{p.name}</div>
+                      <div className="text-[9px] text-[#4a5a30] uppercase tracking-widest">{p.category}</div>
                       <div className="mt-1 h-0.5 bg-[#2d3620]">
-                        <div className="h-full bg-gradient-to-r from-[#d4681a] to-[#e8890a]" style={{ width: `${r.score}%` }} />
+                        <div className="h-full bg-gradient-to-r from-[#d4681a] to-[#e8890a]" style={{ width: `${p.rating}%` }} />
                       </div>
                     </div>
                     <div className="text-right shrink-0">
-                      <div className="font-oswald text-lg font-bold text-white">{r.score}</div>
-                      <div className={`text-[10px] ${r.trend.startsWith("+") ? "text-green-500" : r.trend === "0" ? "text-[#4a5a30]" : "text-red-500"}`}>
-                        {r.trend}
-                      </div>
+                      <div className="font-oswald text-lg font-bold text-white">{p.rating}</div>
+                      <div className="text-[10px] text-[#4a5a30]">pts</div>
                     </div>
                   </div>
                 ))}
               </div>
+              <button
+                onClick={() => setRatingExpanded(!ratingExpanded)}
+                className="mt-4 w-full border border-[#2d3620] hover:border-[#d4681a]/40 text-[#4a5a30] hover:text-[#d4681a] font-oswald uppercase tracking-widest text-xs py-3 transition-all duration-200 flex items-center justify-center gap-2"
+              >
+                <Icon name={ratingExpanded ? "ChevronUp" : "ChevronDown"} size={14} />
+                {ratingExpanded ? `Скрыть (показано ${TOP_ALL.length})` : `Показать все ${TOP_ALL.length} позиций`}
+              </button>
             </div>
 
             <div className="space-y-6">
@@ -619,7 +734,7 @@ export default function Index() {
             <div className="relative flex flex-col md:flex-row items-center justify-between gap-6">
               <div>
                 <div className="font-oswald text-4xl font-bold text-white mb-2">ГОТОВ К МИССИИ?</div>
-                <p className="text-[#7a8a6a] font-light">Опишите вашу задачу — ИИ подберёт снаряжение за 3 секунды</p>
+                <p className="text-[#7a8a6a] font-light">Опишите вашу задачу — ИИ подберёт снаряжение из 30 позиций</p>
               </div>
               <button className="btn-combat text-base px-10" onClick={() => scrollTo("ai-selector")}>
                 Начать подбор
@@ -644,9 +759,7 @@ export default function Index() {
             <a href="#" className="hover:text-[#d4681a] transition-colors">Гарантия</a>
             <a href="#" className="hover:text-[#d4681a] transition-colors">Контакты</a>
           </div>
-          <div className="text-[10px] text-[#2d3620] tracking-widest">
-            © 2025 TACTICMIND // ALL RIGHTS RESERVED
-          </div>
+          <div className="text-[10px] text-[#2d3620] tracking-widest">© 2025 TACTICMIND // ALL RIGHTS RESERVED</div>
         </div>
       </footer>
     </div>

@@ -11,9 +11,10 @@ interface CartModalProps {
   onRemove: (id: number) => void;
   onChangeQty: (id: number, delta: number) => void;
   onClear: () => void;
+  onOrder?: () => void;
 }
 
-export default function CartModal({ open, onClose, items, totalPrice, totalCount, onRemove, onChangeQty, onClear }: CartModalProps) {
+export default function CartModal({ open, onClose, items, totalPrice, totalCount, onRemove, onChangeQty, onClear, onOrder }: CartModalProps) {
   const backdropRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -32,9 +33,13 @@ export default function CartModal({ open, onClose, items, totalPrice, totalCount
   }, [onClose]);
 
   const handleOrder = () => {
-    alert("Заказ оформлен! Менеджер свяжется с вами в течение 15 минут.");
-    onClear();
-    onClose();
+    if (onOrder) {
+      onOrder();
+    } else {
+      alert("Заказ оформлен! Менеджер свяжется с вами в течение 15 минут.");
+      onClear();
+      onClose();
+    }
   };
 
   if (!open) return null;
