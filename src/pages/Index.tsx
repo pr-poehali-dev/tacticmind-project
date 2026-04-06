@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
+import AiSelector from "@/components/AiSelector";
 
 const PRODUCTS = [
   {
@@ -104,6 +105,7 @@ export default function Index() {
           <div className="hidden md:flex items-center gap-1">
             {[
               { id: "home", label: "Главная" },
+              { id: "ai-selector", label: "AI-подбор" },
               { id: "catalog", label: "Каталог" },
               { id: "rating", label: "Рейтинг" },
               { id: "how", label: "Как работает" },
@@ -200,6 +202,8 @@ export default function Index() {
           <Icon name="ChevronDown" size={28} />
         </div>
       </section>
+
+      <AiSelector />
 
       {/* CATALOG */}
       <section id="catalog" className="py-24 bg-[#0d0f0a]">

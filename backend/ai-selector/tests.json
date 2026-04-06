@@ -1,0 +1,28 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Подбор снаряжения для похода",
+      "method": "POST",
+      "path": "/",
+      "body": {"task": "Планирую трёхдневный поход в горы зимой, нужно лёгкое и тёплое снаряжение"},
+      "expectedStatus": 200,
+      "expectedBody": {"intro": "string", "items": []},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Пустая задача — ошибка",
+      "method": "POST",
+      "path": "/",
+      "body": {"task": ""},
+      "expectedStatus": 400,
+      "expectedBody": {"error": "string"},
+      "bodyMatcher": "partial"
+    }
+  ]
+}
