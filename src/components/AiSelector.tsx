@@ -25,7 +25,11 @@ const EXAMPLES = [
 
 const AI_SELECTOR_URL = "https://functions.poehali.dev/d6b6ebfb-f0a1-4d04-b79b-a3a494f70a81";
 
-export default function AiSelector() {
+interface AiSelectorProps {
+  onAddToCart?: (product: Product) => void;
+}
+
+export default function AiSelector({ onAddToCart }: AiSelectorProps) {
   const [task, setTask] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AiResult | null>(null);
@@ -226,7 +230,8 @@ export default function AiSelector() {
                           ))}
                         </div>
 
-                        <button className="btn-combat text-xs px-4 py-2">
+                        <button className="btn-combat text-xs px-4 py-2 flex items-center gap-1.5" onClick={() => onAddToCart?.(p)}>
+                          <Icon name="ShoppingCart" size={12} />
                           В корзину
                         </button>
                       </div>
