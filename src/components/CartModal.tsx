@@ -12,17 +12,20 @@ interface CartModalProps {
   onChangeQty: (id: number, delta: number) => void;
   onClear: () => void;
   onOrder?: () => void;
+  isAuthorized?: boolean;
+  onLoginRequest?: () => void;
 }
 
-export default function CartModal({ open, onClose, items, totalPrice, totalCount, onRemove, onChangeQty, onClear, onOrder }: CartModalProps) {
+export default function CartModal({
+  open, onClose, items, totalPrice, totalCount,
+  onRemove, onChangeQty, onClear, onOrder,
+  isAuthorized = false, onLoginRequest,
+}: CartModalProps) {
   const backdropRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (open) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    if (open) document.body.style.overflow = "hidden";
+    else document.body.style.overflow = "";
     return () => { document.body.style.overflow = ""; };
   }, [open]);
 
@@ -33,20 +36,17 @@ export default function CartModal({ open, onClose, items, totalPrice, totalCount
   }, [onClose]);
 
   const handleOrder = () => {
-    if (onOrder) {
-      onOrder();
-    } else {
-      alert("Заказ оформлен! Менеджер свяжется с вами в течение 15 минут.");
-      onClear();
-      onClose();
+    if (!isAuthorized) {
+      onLoginRequest?.();
+      return;
     }
+    if (onOrder) onOrder();
   };
 
   if (!open) return null;
 
   return (
     <div className="fixed inset-0 z-[100] flex">
-      {/* Backdrop */}
       <div
         ref={backdropRef}
         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
@@ -54,7 +54,6 @@ export default function CartModal({ open, onClose, items, totalPrice, totalCount
         style={{ animation: "fadeIn 0.2s ease-out" }}
       />
 
-      {/* Panel */}
       <div
         className="relative ml-auto w-full max-w-md h-full bg-[#141810] border-l border-[#2d3620] flex flex-col"
         style={{ animation: "slideInRight 0.25s ease-out" }}
@@ -70,10 +69,7 @@ export default function CartModal({ open, onClose, items, totalPrice, totalCount
               </span>
             )}
           </div>
-          <button
-            onClick={onClose}
-            className="text-[#4a5a30] hover:text-[#d4681a] transition-colors p-1"
-          >
+          <button onClick={onClose} className="text-[#4a5a30] hover:text-[#d4681a] transition-colors p-1">
             <Icon name="X" size={22} />
           </button>
         </div>
@@ -87,10 +83,7 @@ export default function CartModal({ open, onClose, items, totalPrice, totalCount
               </div>
               <div className="font-oswald text-2xl text-[#2d3620] uppercase tracking-widest">Корзина пуста</div>
               <p className="text-[#3d4a2b] text-sm font-light">Добавьте снаряжение из каталога</p>
-              <button
-                onClick={onClose}
-                className="btn-combat text-sm mt-2"
-              >
+              <button onClick={onClose} className="btn-combat text-sm mt-2">
                 Перейти в каталог
               </button>
             </div>
@@ -121,10 +114,7 @@ export default function CartModal({ open, onClose, items, totalPrice, totalCount
                     </div>
                   </div>
                   <div className="flex flex-col items-end justify-between">
-                    <button
-                      onClick={() => onRemove(item.id)}
-                      className="text-[#3d4a2b] hover:text-red-500 transition-colors"
-                    >
+                    <button onClick={() => onRemove(item.id)} className="text-[#3d4a2b] hover:text-red-500 transition-colors">
                       <Icon name="Trash2" size={14} />
                     </button>
                     <div className="font-oswald text-[#d4681a] font-bold text-sm">
@@ -148,13 +138,35 @@ export default function CartModal({ open, onClose, items, totalPrice, totalCount
                 {totalPrice.toLocaleString("ru-RU")} ₽
               </div>
             </div>
-            <button
-              onClick={handleOrder}
-              className="w-full btn-combat text-base flex items-center justify-center gap-2"
-            >
-              <Icon name="CheckCircle" size={18} />
-              Оформить заказ
-            </button>
+
+            {/* Auth required block */}
+            {!isAuthorized ? (
+              <div className="border border-[#d4681a]/30 bg-[#d4681a]/5 p-4 space-y-3">
+                <div className="flex items-start gap-2">
+                  <Icon name="AlertCircle" size={16} className="text-[#d4681a] shrink-0 mt-0.5" />
+                  <div>
+                    <div className="font-oswald text-sm text-white mb-1">Войдите для оформления заказа</div>
+                    <p className="text-[#7a8a6a] text-xs font-light">Авторизуйтесь или создайте аккаунт, чтобы оформить заказ и отслеживать его статус.</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => { onLoginRequest?.(); }}
+                  className="w-full btn-combat text-sm flex items-center justify-center gap-2"
+                >
+                  <Icon name="LogIn" size={15} />
+                  Войти / Зарегистрироваться
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={handleOrder}
+                className="w-full btn-combat text-base flex items-center justify-center gap-2"
+              >
+                <Icon name="CheckCircle" size={18} />
+                Оформить заказ
+              </button>
+            )}
+
             <button
               onClick={onClear}
               className="w-full text-[#3d4a2b] hover:text-red-400 text-xs font-roboto uppercase tracking-widest transition-colors text-center"
@@ -166,14 +178,8 @@ export default function CartModal({ open, onClose, items, totalPrice, totalCount
       </div>
 
       <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes slideInRight {
-          from { transform: translateX(100%); }
-          to { transform: translateX(0); }
-        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
       `}</style>
     </div>
   );

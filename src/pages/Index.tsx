@@ -8,15 +8,11 @@ import AuthModal from "@/components/AuthModal";
 import AdminPanel from "@/components/AdminPanel";
 import { useCart } from "@/hooks/useCart";
 import { useAuth, type Order, type Selection } from "@/hooks/useAuth";
+import { useProducts } from "@/hooks/useProducts";
 
-// Изображения из проекта
-const IMG = {
-  backpack: "https://cdn.poehali.dev/projects/600da521-22fd-451e-8c82-59b152c1d165/files/e36b36f6-28e7-40d1-b2b2-842f39d434ea.jpg",
-  knife: "https://cdn.poehali.dev/projects/600da521-22fd-451e-8c82-59b152c1d165/files/8ea21448-585e-4cc6-8bdf-15653a06e9ca.jpg",
-  boots: "https://cdn.poehali.dev/projects/600da521-22fd-451e-8c82-59b152c1d165/files/b272a69e-e2fc-459d-92b6-1eedea70a0f9.jpg",
-};
-
-const PRODUCTS: AiProduct[] = [
+ 
+// Данные товаров хранятся в useProducts / localStorage
+const _PRODUCTS_LEGACY: AiProduct[] = [
   // --- СУЩЕСТВУЮЩИЕ (1–14) ---
   {
     id: 1, name: "Рюкзак ASSAULT PRO", category: "Экипировка", price: "8 490 ₽", rating: 97,
@@ -207,6 +203,7 @@ const PRODUCTS: AiProduct[] = [
   },
 ];
 
+ 
 // Все категории для фильтра
 const CATS = ["Все", "Экипировка", "Защита", "Обувь", "Инструменты", "Свет", "Одежда", "Питание и гидратация", "Средства связи", "Медицина"];
 const RATING_FILTERS = [{ label: "Любой", val: 0 }, { label: "80+", val: 80 }, { label: "85+", val: 85 }, { label: "90+", val: 90 }, { label: "95+", val: 95 }];
@@ -228,13 +225,11 @@ function parsePrice(price: string) {
   return parseInt(price.replace(/\D/g, ""), 10) || 0;
 }
 
-// Топ-5 из всех 30 товаров по рейтингу
-const TOP_ALL = [...PRODUCTS].sort((a, b) => b.rating - a.rating);
-
 export default function Index() {
   const [activeSection, setActiveSection] = useState("home");
   const [cartOpen, setCartOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
+  const [authDefaultTab, setAuthDefaultTab] = useState<"login" | "register">("login");
   const [adminOpen, setAdminOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<AiProduct | null>(null);
   const [ratingExpanded, setRatingExpanded] = useState(false);
@@ -249,7 +244,10 @@ export default function Index() {
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { items, totalCount, totalPrice, addItem, removeItem, changeQty, clear } = useCart();
-  const { currentUser, register, login, logout, saveOrder, saveSelection, getUsers, saveUsers } = useAuth();
+  const { currentUser, register, login, logout, saveOrder, saveSelection, changePassword, updateUser, getUsers, saveUsers } = useAuth();
+  const { products, updateProduct, addProduct, deleteProduct, resetToDefaults } = useProducts();
+
+  const TOP_ALL = [...products].sort((a, b) => b.rating - a.rating);
 
   const showToast = useCallback((msg: string) => {
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
@@ -294,7 +292,7 @@ export default function Index() {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   };
 
-  let filtered = PRODUCTS.filter(p => {
+  let filtered = products.filter(p => {
     if (filterCat !== "Все" && p.category !== filterCat) return false;
     if (filterMaxPrice && parsePrice(p.price) > parseInt(filterMaxPrice, 10)) return false;
     if (filterMinRating && p.rating < filterMinRating) return false;
@@ -305,6 +303,12 @@ export default function Index() {
   if (sortBy === "rating_desc") filtered = [...filtered].sort((a, b) => b.rating - a.rating);
 
   const ratingList = ratingExpanded ? TOP_ALL : TOP_ALL.slice(0, 5);
+
+  const openAuthForOrder = () => {
+    setAuthDefaultTab("login");
+    setCartOpen(false);
+    setAuthOpen(true);
+  };
 
   return (
     <div className="min-h-screen bg-[#0d0f0a] text-[#d8dcc8] font-roboto">
@@ -320,6 +324,8 @@ export default function Index() {
         onChangeQty={changeQty}
         onClear={clear}
         onOrder={handleOrder}
+        isAuthorized={!!currentUser}
+        onLoginRequest={openAuthForOrder}
       />
 
       <ProductModal
@@ -334,13 +340,20 @@ export default function Index() {
         onRegister={(e, p, n) => { const err = register(e, p, n); if (!err) showToast("Добро пожаловать!"); return err; }}
         onLogin={(e, p) => { const err = login(e, p); if (!err) showToast("Вход выполнен"); return err; }}
         onLogout={logout}
+        onChangePassword={changePassword}
+        onUpdateUser={updateUser}
         currentUser={currentUser}
+        defaultTab={authDefaultTab}
       />
 
       <AdminPanel
         open={adminOpen}
         onClose={() => setAdminOpen(false)}
-        products={PRODUCTS}
+        products={products}
+        onUpdateProduct={updateProduct}
+        onAddProduct={addProduct}
+        onDeleteProduct={deleteProduct}
+        onResetProducts={resetToDefaults}
         getUsers={getUsers}
         saveUsers={saveUsers}
         onLogout={logout}
@@ -481,7 +494,7 @@ export default function Index() {
       <AiSelector
         onAddToCart={handleAddToCart}
         onProductClick={(p) => setSelectedProduct(p)}
-        allProducts={PRODUCTS}
+        allProducts={products}
         onSaveSelection={handleSaveSelection}
       />
 
