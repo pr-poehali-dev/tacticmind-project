@@ -2,6 +2,36 @@ import { useState } from "react";
 import type { AiProduct } from "@/components/AiSelector";
 
 const STORAGE_KEY = "tacticmind_products";
+const IMAGES_KEY = "tacticmind_images";
+
+function loadImages(): Record<number, string> {
+  try {
+    const raw = localStorage.getItem(IMAGES_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch { /* ignore */ }
+  return {};
+}
+
+function saveImage(id: number, dataUrl: string) {
+  try {
+    const imgs = loadImages();
+    imgs[id] = dataUrl;
+    localStorage.setItem(IMAGES_KEY, JSON.stringify(imgs));
+  } catch { /* quota — ignore */ }
+}
+
+function deleteImage(id: number) {
+  try {
+    const imgs = loadImages();
+    delete imgs[id];
+    localStorage.setItem(IMAGES_KEY, JSON.stringify(imgs));
+  } catch { /* ignore */ }
+}
+
+export function getProductImage(id: number, fallback: string): string {
+  const imgs = loadImages();
+  return imgs[id] || fallback;
+}
 
 const IMG = {
   backpack: "https://cdn.poehali.dev/projects/600da521-22fd-451e-8c82-59b152c1d165/files/e36b36f6-28e7-40d1-b2b2-842f39d434ea.jpg",
@@ -45,19 +75,35 @@ export const DEFAULT_PRODUCTS: AiProduct[] = [
 function loadProducts(): AiProduct[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const imgs = loadImages();
+      const list: AiProduct[] = JSON.parse(raw);
+      return list.map(p => ({ ...p, image: imgs[p.id] || p.image }));
+    }
   } catch { /* ignore */ }
   return DEFAULT_PRODUCTS;
 }
 
 function saveProducts(products: AiProduct[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+  try {
+    // strip base64 images before saving to main key
+    const stripped = products.map(p => ({
+      ...p,
+      image: p.image?.startsWith("data:") ? "" : (p.image || ""),
+    }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(stripped));
+  } catch { /* quota — ignore */ }
 }
 
 export function useProducts() {
   const [products, setProducts] = useState<AiProduct[]>(loadProducts);
 
   const updateProduct = (updated: AiProduct) => {
+    if (updated.image?.startsWith("data:")) {
+      saveImage(updated.id, updated.image);
+    } else if (!updated.image) {
+      deleteImage(updated.id);
+    }
     setProducts(prev => {
       const next = prev.map(p => p.id === updated.id ? updated : p);
       saveProducts(next);
@@ -68,13 +114,18 @@ export function useProducts() {
   const addProduct = (product: Omit<AiProduct, "id">) => {
     setProducts(prev => {
       const maxId = Math.max(0, ...prev.map(p => p.id));
-      const next = [...prev, { ...product, id: maxId + 1 }];
+      const id = maxId + 1;
+      if (product.image?.startsWith("data:")) {
+        saveImage(id, product.image);
+      }
+      const next = [...prev, { ...product, id }];
       saveProducts(next);
       return next;
     });
   };
 
   const deleteProduct = (id: number) => {
+    deleteImage(id);
     setProducts(prev => {
       const next = prev.filter(p => p.id !== id);
       saveProducts(next);
@@ -83,6 +134,7 @@ export function useProducts() {
   };
 
   const resetToDefaults = () => {
+    localStorage.removeItem(IMAGES_KEY);
     saveProducts(DEFAULT_PRODUCTS);
     setProducts(DEFAULT_PRODUCTS);
   };
