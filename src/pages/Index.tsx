@@ -502,7 +502,7 @@ export default function Index() {
           <div className="mb-10">
             <div className="sec-badge">Каталог снаряжения</div>
             <h2 className="font-oswald text-5xl font-bold text-white">
-              ОТОБРАНО <span className="text-[#d4681a]">ИИ</span>
+              ОТОБРАНО <span className="text-[#d4681a]">Искусственным интеллектом</span>
             </h2>
             <p className="text-[#7a8a6a] mt-2 font-light">30 позиций по 10 категориям, отобранных и протестированных специалистами</p>
           </div>
