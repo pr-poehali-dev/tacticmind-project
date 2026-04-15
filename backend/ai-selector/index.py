@@ -12,7 +12,7 @@ CATALOG = [
      "specs": ["45 литров", "Кордура 1000D", "MOLLE", "IP65"],
      "description": "Штурмовой рюкзак 45л с системой MOLLE, водонепроницаемый, вес 1.8кг"},
     {"id": 2, "name": "Мультитул FORCE-7", "category": "Инструменты", "price": "4 200 ₽", "rating": 94,
-     "image": "https://cdn.poehali.dev/projects/600da521-22fd-451e-8c82-59b152c1d165/files/8ea21448-585e-4cc6-8bdf-15653a06e9ca.jpg",
+     "image": "https://cdn.poehali.dev/projects/600da521-22fd-451e-8c82-59b152c1d165/bucket/93280854-cfa4-4779-9ae0-c46ebc1eb736.jpg",
      "specs": ["19 функций", "Сталь 420HC", "156 гр", "25 лет гарантии"],
      "description": "Мультитул 19-в-1 из нержавеющей стали 420HC, вес 156г, гарантия 25 лет"},
     {"id": 3, "name": "Берцы GRUNT X2", "category": "Обувь", "price": "12 800 ₽", "rating": 91,
