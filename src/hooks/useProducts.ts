@@ -3,6 +3,7 @@ import type { AiProduct } from "@/components/AiSelector";
 
 const STORAGE_KEY = "tacticmind_products";
 const IMAGES_KEY = "tacticmind_images";
+const DATA_VERSION = "v2";
 
 function loadImages(): Record<number, string> {
   try {
@@ -102,6 +103,12 @@ export const DEFAULT_PRODUCTS: AiProduct[] = [
 
 function loadProducts(): AiProduct[] {
   try {
+    if (localStorage.getItem("tacticmind_version") !== DATA_VERSION) {
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(IMAGES_KEY);
+      localStorage.setItem("tacticmind_version", DATA_VERSION);
+      return DEFAULT_PRODUCTS;
+    }
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const imgs = loadImages();
