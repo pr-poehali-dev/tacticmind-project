@@ -114,11 +114,11 @@ CATALOG = [
      "specs": ["Каолин", "3 минуты", "Стерильная", "5 лет"],
      "description": "Гемостатическая повязка с каолином, останавливает кровотечение за 3 минуты, стерильная упаковка"},
     {"id": 27, "name": "Лопатка САПЁР-М", "category": "Инструменты", "price": "2 600 ₽", "rating": 85,
-     "image": BASE + "ab19ecca-9985-40f0-a0ff-f0efed45e3e8.jfif",
+     "image": BASE + "1c6cfc47-6ae6-4520-a32d-59a300ff187f.jfif",
      "specs": ["Сталь 65Г", "Пила", "520 г", "MOLLE чехол"],
      "description": "Складная малая сапёрная лопатка, сталь 65Г, пила на обухе, рукоять прорезиненная, чехол MOLLE"},
     {"id": 28, "name": "Мультитул ТЯЖЁЛЫЙ-ПРО", "category": "Инструменты", "price": "6 800 ₽", "rating": 89,
-     "image": BASE + "ede7fa66-3f72-4fe6-9b78-c78f77dc9e83.jfif",
+     "image": BASE + "f0d212c7-6614-440c-bc95-c0edefb96348.jpg",
      "specs": ["24 функции", "Сталь 8Cr13MoV", "320 г", "Пожизненная гарантия"],
      "description": "Тяжёлый мультитул 24 функции для серьёзных полевых задач, ножовка по металлу, стропорез"},
     {"id": 29, "name": "Налокотники БРОНЯ-ТК", "category": "Защита", "price": "3 900 ₽", "rating": 83,
@@ -280,12 +280,20 @@ def handler(event: dict, context) -> dict:
                 "aiReason": item["reason"],
             })
 
+    # Конвертируем budget dict → budgetBars array для фронтенда
+    BAR_COLORS = ["#d4681a", "#e8b04a", "#7a8a6a", "#4a5a30"]
+    raw_budget = scenario.get("budget", {})
+    budget_bars = [
+        {"label": label, "pct": pct, "color": BAR_COLORS[i % len(BAR_COLORS)]}
+        for i, (label, pct) in enumerate(raw_budget.items())
+    ]
+
     return {
         'statusCode': 200,
         'headers': json_headers,
         'body': json.dumps({
             'intro': scenario["intro"],
             'items': result_items,
-            'budget': scenario.get("budget", {}),
+            'budgetBars': budget_bars,
         }, ensure_ascii=False)
     }

@@ -113,15 +113,9 @@ export default function AiSelector({ onAddToCart, onProductClick, allProducts = 
 
     const interval = setInterval(() => setDots(d => (d + 1) % 4), 400);
 
-    if (allProducts.length > 0) {
-      await new Promise(r => setTimeout(r, 1200));
-      const demoResult = buildDemoResult(query, allProducts);
-      setResult(demoResult);
-      onSaveSelection?.(query, demoResult.items);
-      setLoading(false);
-      clearInterval(interval);
-      return;
-    }
+    // Карта id → image из локального каталога для подстановки картинок
+    const localImageMap: Record<number, string> = {};
+    allProducts.forEach(p => { if (p.id && p.image) localImageMap[p.id] = p.image; });
 
     try {
       const res = await fetch(AI_SELECTOR_URL, {
@@ -133,8 +127,13 @@ export default function AiSelector({ onAddToCart, onProductClick, allProducts = 
       if (!res.ok) {
         setError(data.error || "Ошибка подбора. Попробуйте ещё раз.");
       } else {
-        setResult(data);
-        onSaveSelection?.(query, data.items || []);
+        // Подставляем картинки из локального каталога если они есть
+        const enrichedItems = (data.items || []).map((item: AiProduct) => ({
+          ...item,
+          image: localImageMap[item.id] || item.image,
+        }));
+        setResult({ ...data, items: enrichedItems });
+        onSaveSelection?.(query, enrichedItems);
       }
     } catch {
       setError("Ошибка соединения. Проверьте интернет и попробуйте снова.");

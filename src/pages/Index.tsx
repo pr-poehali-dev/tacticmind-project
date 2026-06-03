@@ -492,6 +492,7 @@ export default function Index() {
       <AiSelector
         onAddToCart={handleAddToCart}
         onProductClick={(p) => setSelectedProduct(p)}
+        allProducts={products}
         onSaveSelection={handleSaveSelection}
       />
 
