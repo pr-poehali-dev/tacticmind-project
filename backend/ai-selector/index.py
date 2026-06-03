@@ -233,15 +233,57 @@ def handler(event: dict, context) -> dict:
         for p in CATALOG
     ])
 
+    # Предварительная классификация сценария на Python-уровне
+    task_lower = task.lower()
+
+    SCENARIO_HINTS = []
+
+    # Медицина
+    if any(w in task_lower for w in ["медицин", "аптечк", "первая помощь", "лечени", "ранен", "кровотечени"]):
+        SCENARIO_HINTS.append(
+            "СЦЕНАРИЙ: МЕДИЦИНА. ОБЯЗАТЕЛЬНЫЕ id: 9, 24, 25, 26. "
+            "НЕ включай: одежду, паёк, антенну, навигатор, маскировку."
+        )
+
+    # Разминирование / сапёрные работы
+    if any(w in task_lower for w in ["разминировани", "мин", "сапёр", "сапер", "взрывч", "фугас", "ифс", "взрывн"]):
+        SCENARIO_HINTS.append(
+            "СЦЕНАРИЙ: РАЗМИНИРОВАНИЕ. ОБЯЗАТЕЛЬНЫЕ id: 27 (лопатка), 5 (перчатки), 11 (очки), 28 (мультитул), 25 (турникет), 26 (повязка), 9 (аптечка). "
+            "НЕ включай: id=12 (накидка), id=30 (чехол), id=10 (рация), id=23 (антенна), id=20 (паёк), id=18 (пончо)."
+        )
+
+    # Связь
+    if any(w in task_lower for w in ["связь", "рация", "радио", "коммуникац", "гарнитур"]):
+        SCENARIO_HINTS.append(
+            "СЦЕНАРИЙ: СВЯЗЬ. ОБЯЗАТЕЛЬНЫЕ id: 10 (рация), 22 (гарнитура), 23 (антенна)."
+        )
+
+    # Маскировка / разведка
+    if any(w in task_lower for w in ["маскировк", "разведк", "наблюдени", "засад", "скрытност"]):
+        SCENARIO_HINTS.append(
+            "СЦЕНАРИЙ: МАСКИРОВКА. ОБЯЗАТЕЛЬНЫЕ id: 12 (накидка), 18 (пончо), 14 (навигатор)."
+        )
+
+    # Зима / холод
+    if any(w in task_lower for w in ["зим", "холод", "мороз", "арктик", "снег", "-"]):
+        SCENARIO_HINTS.append(
+            "СЦЕНАРИЙ: ЗИМА. ОБЯЗАТЕЛЬНЫЕ id: 15 (куртка арктик), 17 (флис), 3 (берцы)."
+        )
+
+    hints_text = "\n".join(SCENARIO_HINTS)
+    user_message = f"Сценарий: {task}"
+    if hints_text:
+        user_message += f"\n\n[СИСТЕМНАЯ ИНСТРУКЦИЯ ДЛЯ ЭТОГО ЗАПРОСА]\n{hints_text}\nСледуй этим ограничениям СТРОГО."
+
     client = OpenAI(api_key=os.environ['OPENAI_API_KEY'])
 
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="gpt-4o",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT.format(catalog=catalog_text)},
-            {"role": "user", "content": f"Сценарий: {task}"},
+            {"role": "user", "content": user_message},
         ],
-        temperature=0.5,
+        temperature=0.2,
         max_tokens=1500,
         response_format={"type": "json_object"},
     )
