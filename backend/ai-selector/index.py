@@ -4,7 +4,7 @@ AI-подбор тактического снаряжения TacticMind.
 """
 import json
 import os
-from openai import OpenAI
+import requests
 
 BASE = "https://cdn.poehali.dev/projects/600da521-22fd-451e-8c82-59b152c1d165/bucket/"
 FILES = "https://cdn.poehali.dev/projects/600da521-22fd-451e-8c82-59b152c1d165/files/"
@@ -270,35 +270,71 @@ def handler(event: dict, context) -> dict:
             "СЦЕНАРИЙ: ЗИМА. ОБЯЗАТЕЛЬНЫЕ id: 15 (куртка арктик), 17 (флис), 3 (берцы)."
         )
 
+    # Жёсткие обязательные и запрещённые ID по сценарию (Python-уровень, не зависит от ИИ)
+    required_ids = set()
+    forbidden_ids = set()
+
+    if any(w in task_lower for w in ["медицин", "аптечк", "первая помощь", "лечени", "ранен", "кровотечени"]):
+        required_ids.update([9, 24, 25, 26])
+        forbidden_ids.update([18, 20, 23, 12, 14])  # пончо, паёк, антенна, накидка, навигатор
+
+    if any(w in task_lower for w in ["разминировани", "сапёр", "сапер", "взрывч", "фугас"]):
+        required_ids.update([27, 5, 11, 28, 25, 26, 9])
+        forbidden_ids.update([12, 30, 10, 23, 20, 18])  # накидка, чехол, рация, антенна, паёк, пончо
+
+    if any(w in task_lower for w in ["мин"]) and "разминировани" not in task_lower:
+        # "мины" без "разминирование" — тоже сапёрный сценарий
+        required_ids.update([27, 5, 11, 25, 26, 9])
+        forbidden_ids.update([12, 30, 23, 20, 18])
+
     hints_text = "\n".join(SCENARIO_HINTS)
     user_message = f"Сценарий: {task}"
     if hints_text:
-        user_message += f"\n\n[СИСТЕМНАЯ ИНСТРУКЦИЯ ДЛЯ ЭТОГО ЗАПРОСА]\n{hints_text}\nСледуй этим ограничениям СТРОГО."
+        user_message += f"\n\n[ИНСТРУКЦИЯ]\n{hints_text}"
 
-    client = OpenAI(api_key=os.environ['OPENAI_API_KEY'])
-
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT.format(catalog=catalog_text)},
-            {"role": "user", "content": user_message},
-        ],
-        temperature=0.2,
-        max_tokens=1500,
-        response_format={"type": "json_object"},
+    api_response = requests.post(
+        "https://api.openai.com/v1/chat/completions",
+        headers={
+            "Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "model": "gpt-4o-mini",
+            "messages": [
+                {"role": "system", "content": SYSTEM_PROMPT.format(catalog=catalog_text)},
+                {"role": "user", "content": user_message},
+            ],
+            "temperature": 0.3,
+            "max_tokens": 1500,
+            "response_format": {"type": "json_object"},
+        },
+        timeout=25,
     )
-
-    ai_result = json.loads(response.choices[0].message.content)
+    api_response.raise_for_status()
+    ai_result = json.loads(api_response.json()["choices"][0]["message"]["content"])
 
     catalog_map = {p["id"]: p for p in CATALOG}
 
+    # Пост-обработка: принудительно добавляем required, убираем forbidden
+    ai_ids = [item["id"] for item in ai_result.get("items", [])]
+    ai_reasons = {item["id"]: item.get("reason", "") for item in ai_result.get("items", [])}
+
+    # Убираем запрещённые
+    ai_ids = [i for i in ai_ids if i not in forbidden_ids]
+
+    # Добавляем обязательные которых нет
+    for rid in required_ids:
+        if rid not in ai_ids:
+            ai_ids.append(rid)
+            ai_reasons[rid] = ""  # ИИ не дал обоснование — оставим пустым, заполним ниже
+
     result_items = []
-    for ai_item in ai_result.get("items", []):
-        product = catalog_map.get(ai_item["id"])
+    for pid in ai_ids:
+        product = catalog_map.get(pid)
         if product:
             result_items.append({
                 **product,
-                "aiReason": ai_item["reason"],
+                "aiReason": ai_reasons.get(pid, product["description"]),
             })
 
     return {
