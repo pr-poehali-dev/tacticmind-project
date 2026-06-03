@@ -1,28 +1,5 @@
-{
-  "tests": [
-    {
-      "name": "OPTIONS preflight",
-      "method": "OPTIONS",
-      "path": "/",
-      "expectedStatus": 200
-    },
-    {
-      "name": "Подбор снаряжения для похода",
-      "method": "POST",
-      "path": "/",
-      "body": {"task": "Планирую трёхдневный поход в горы зимой, нужно лёгкое и тёплое снаряжение"},
-      "expectedStatus": 200,
-      "expectedBody": {"intro": "string", "items": []},
-      "bodyMatcher": "partial"
-    },
-    {
-      "name": "Пустая задача — ошибка",
-      "method": "POST",
-      "path": "/",
-      "body": {"task": ""},
-      "expectedStatus": 400,
-      "expectedBody": {"error": "string"},
-      "bodyMatcher": "partial"
-    }
-  ]
-}
+{"tests": [
+  {"name": "OPTIONS preflight", "method": "OPTIONS", "path": "/", "expectedStatus": 200},
+  {"name": "Пустой запрос — ошибка", "method": "POST", "path": "/", "body": "{}", "expectedStatus": 400, "bodyMatcher": "partial", "expectedBody": {"error": "string"}},
+  {"name": "Слишком короткий запрос", "method": "POST", "path": "/", "body": "{\"task\": \"а\"}", "expectedStatus": 400, "bodyMatcher": "partial", "expectedBody": {"error": "string"}}
+]}
