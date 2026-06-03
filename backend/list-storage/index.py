@@ -24,12 +24,17 @@ def handler(event: dict, context) -> dict:
 
     prefix = event.get('queryStringParameters', {}).get('prefix', '') if event.get('queryStringParameters') else ''
 
-    response = s3.list_objects_v2(Bucket='files', Prefix=prefix)
-    files = []
-    for obj in response.get('Contents', []):
-        key = obj['Key']
-        cdn_url = f"https://cdn.poehali.dev/projects/{os.environ['AWS_ACCESS_KEY_ID']}/files/{key}"
-        files.append({'key': key, 'url': cdn_url, 'size': obj['Size']})
+    all_files = []
+    for bucket_name in ['files', 'catalog', 'images', 'uploads']:
+        try:
+            response = s3.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
+            for obj in response.get('Contents', []):
+                key = obj['Key']
+                cdn_url = f"https://cdn.poehali.dev/projects/{os.environ['AWS_ACCESS_KEY_ID']}/bucket/{key}"
+                all_files.append({'key': key, 'bucket': bucket_name, 'url': cdn_url, 'size': obj['Size']})
+        except Exception as e:
+            pass
+    files = all_files
 
     return {
         'statusCode': 200,
