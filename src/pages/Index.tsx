@@ -769,6 +769,7 @@ export default function Index() {
             <a href="#" className="hover:text-[#d4681a] transition-colors">Доставка</a>
             <a href="#" className="hover:text-[#d4681a] transition-colors">Гарантия</a>
             <a href="#" className="hover:text-[#d4681a] transition-colors">Контакты</a>
+            <a href="/privacy" className="hover:text-[#d4681a] transition-colors">Политика конфиденциальности</a>
           </div>
           <div className="text-[10px] text-[#2d3620] tracking-widest">© 2025 TACTICMIND // ALL RIGHTS RESERVED</div>
         </div>
