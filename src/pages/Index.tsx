@@ -764,11 +764,11 @@ export default function Index() {
             </div>
             <span className="font-oswald text-lg tracking-widest text-white">TACTICMIND</span>
           </div>
-          <div className="flex gap-6 text-[11px] text-[#4a5a30] uppercase tracking-widest font-roboto">
-            <a href="#" className="hover:text-[#d4681a] transition-colors">О нас</a>
-            <a href="#" className="hover:text-[#d4681a] transition-colors">Доставка</a>
-            <a href="#" className="hover:text-[#d4681a] transition-colors">Гарантия</a>
-            <a href="#" className="hover:text-[#d4681a] transition-colors">Контакты</a>
+          <div className="flex flex-wrap gap-6 text-[11px] text-[#4a5a30] uppercase tracking-widest font-roboto">
+            <a href="/about" className="hover:text-[#d4681a] transition-colors">О нас</a>
+            <a href="/delivery" className="hover:text-[#d4681a] transition-colors">Доставка</a>
+            <a href="/warranty" className="hover:text-[#d4681a] transition-colors">Гарантия</a>
+            <a href="/contacts" className="hover:text-[#d4681a] transition-colors">Контакты</a>
             <a href="/privacy" className="hover:text-[#d4681a] transition-colors">Политика конфиденциальности</a>
           </div>
           <div className="text-[10px] text-[#2d3620] tracking-widest">© 2025 TACTICMIND // ALL RIGHTS RESERVED</div>
